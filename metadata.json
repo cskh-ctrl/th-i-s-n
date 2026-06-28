@@ -1,0 +1,6 @@
+{
+  "name": "Thai Son School Tuition Management System",
+  "description": "Professional tuition calculation and management system for Thai Son Pre-school & Primary School.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

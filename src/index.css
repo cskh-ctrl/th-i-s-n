@@ -1,0 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+  
+  /* Custom brand colors matching the Trường Việt Anh brand guideline */
+  --color-brand-navy: #0D2B55;
+  --color-brand-navy-light: #26275D;
+  --color-brand-orange: #F07D00;
+  --color-brand-light-bg: #F0F4F8;
+  --color-brand-text: #1A1A2E;
+  --color-brand-border: #E2E8F0;
+}
