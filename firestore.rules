@@ -1,0 +1,77 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default catch-all denies all access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Rule matches for collections
+    match /academic_years/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(id);
+    }
+
+    match /education_levels/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(id);
+    }
+
+    match /classes/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(id);
+    }
+
+    match /fee_categories/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(id);
+    }
+
+    match /fee_items/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(id);
+    }
+
+    match /discount_policies/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(id);
+    }
+
+    match /fee_quotes/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(id);
+    }
+
+    match /users/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(id);
+    }
+
+    match /audit_logs/{id} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(id);
+    }
+
+    match /settings/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(id);
+    }
+  }
+}

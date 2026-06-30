@@ -224,9 +224,10 @@ export interface BadgeProps {
   id?: string;
   variant?: 'neutral' | 'success' | 'warning' | 'error' | 'info';
   children: React.ReactNode;
+  className?: string;
 }
 
-export function Badge({ id, variant = 'neutral', children }: BadgeProps) {
+export function Badge({ id, variant = 'neutral', children, className = '' }: BadgeProps) {
   const styles = {
     neutral: 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700',
     success: 'bg-orange-50 text-brand-orange dark:bg-brand-orange/10 dark:text-brand-orange border border-brand-orange/20',
@@ -238,7 +239,7 @@ export function Badge({ id, variant = 'neutral', children }: BadgeProps) {
   return (
     <span
       id={id}
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${styles[variant]}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${styles[variant]} ${className}`}
     >
       {children}
     </span>

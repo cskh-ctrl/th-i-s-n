@@ -10,6 +10,8 @@ import {
   AuditLog, 
   SystemSettings 
 } from '../types';
+import { db } from '../lib/firebase';
+import { doc, setDoc, getDocs, collection } from 'firebase/firestore';
 
 // Default initial data for the database
 const defaultAcademicYears: AcademicYear[] = [
@@ -670,5 +672,78 @@ export class Database {
     localStorage.removeItem('thaison_school_audit_logs');
     
     this.addAuditLog(actor, 'CÀI ĐẶT HỆ THỐNG', 'Reset toàn bộ cơ sở dữ liệu về mặc định ban đầu');
+  }
+
+  // --- Firebase Cloud Sync Functions ---
+
+  public static async pushToFirebase(): Promise<void> {
+    try {
+      const collections = {
+        'academic_years': this.getAcademicYears(),
+        'education_levels': this.getEducationLevels(),
+        'classes': this.getClasses(),
+        'fee_categories': this.getFeeCategories(),
+        'fee_items': this.getFeeItems(),
+        'discount_policies': this.getDiscountPolicies(),
+        'fee_quotes': this.getQuotes(),
+        'users': this.getUsers(),
+        'audit_logs': this.getAuditLogs()
+      };
+
+      // 1. Sync settings single document
+      const settingsDocRef = doc(db, 'settings', 'global');
+      await setDoc(settingsDocRef, this.getSettings());
+
+      // 2. Sync all other entities
+      for (const [colName, items] of Object.entries(collections)) {
+        for (const item of items) {
+          if (item && (item as any).id) {
+            const docRef = doc(db, colName, (item as any).id);
+            await setDoc(docRef, item);
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Push to Firebase failed:', e);
+      throw e;
+    }
+  }
+
+  public static async pullFromFirebase(): Promise<void> {
+    try {
+      const collections = [
+        'academic_years',
+        'education_levels',
+        'classes',
+        'fee_categories',
+        'fee_items',
+        'discount_policies',
+        'fee_quotes',
+        'users',
+        'audit_logs'
+      ];
+
+      for (const colName of collections) {
+        const querySnapshot = await getDocs(collection(db, colName));
+        const items: any[] = [];
+        querySnapshot.forEach((docSnap) => {
+          items.push(docSnap.data());
+        });
+        if (items.length > 0) {
+          this.set(colName, items);
+        }
+      }
+
+      // Fetch settings
+      const settingsSnap = await getDocs(collection(db, 'settings'));
+      settingsSnap.forEach((docSnap) => {
+        if (docSnap.id === 'global') {
+          this.set('settings', docSnap.data());
+        }
+      });
+    } catch (e) {
+      console.error('Pull from Firebase failed:', e);
+      throw e;
+    }
   }
 }

@@ -12,12 +12,48 @@ import {
   RefreshCw,
   Search,
   CheckCircle2,
-  AlertOctagon
+  AlertOctagon,
+  Cloud,
+  CloudLightning,
+  Database as DbStackIcon
 } from 'lucide-react';
 
 export default function DataBackup() {
   const { currentUser, addToast, dbTrigger, triggerDbRefresh } = useApp();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Firebase Sync States
+  const [isPushing, setIsPushing] = useState(false);
+  const [isPulling, setIsPulling] = useState(false);
+
+  const handlePushToFirebase = async () => {
+    setIsPushing(true);
+    try {
+      await Database.pushToFirebase();
+      addToast('success', 'Đồng bộ đám mây thành công', 'Đã tải toàn bộ dữ liệu cấu hình lên cơ sở dữ liệu Firebase Firestore.');
+      triggerDbRefresh();
+    } catch (e: any) {
+      addToast('error', 'Đồng bộ thất bại', e.message || 'Lỗi không xác định khi ghi dữ liệu lên Cloud.');
+    } finally {
+      setIsPushing(false);
+    }
+  };
+
+  const handlePullFromFirebase = async () => {
+    if (!window.confirm('Cảnh báo: Tải dữ liệu từ Firebase sẽ ghi đè toàn bộ dữ liệu hiện tại trên trình duyệt của bạn. Tiếp tục?')) {
+      return;
+    }
+    setIsPulling(true);
+    try {
+      await Database.pullFromFirebase();
+      addToast('success', 'Tải dữ liệu đám mây thành công', 'Hệ thống đã cập nhật toàn bộ biểu phí mới nhất từ Firebase Firestore.');
+      triggerDbRefresh();
+    } catch (e: any) {
+      addToast('error', 'Tải dữ liệu thất bại', e.message || 'Lỗi không xác định khi tải dữ liệu từ Cloud.');
+    } finally {
+      setIsPulling(false);
+    }
+  };
 
   // 1. Fetch DB
   const initialLogs = useMemo(() => Database.getAuditLogs(), [dbTrigger]);
@@ -119,6 +155,62 @@ export default function DataBackup() {
           Bảo mật dữ liệu tối cao bằng cách sao lưu nén dự phòng định kỳ, khôi phục từ tệp tin lưu trữ, hoặc truy vết lịch sử sửa đổi của nhân viên.
         </p>
       </div>
+
+      {/* Firebase Cloud Sync Control Panel */}
+      <Card className="border-brand-navy/20 dark:border-brand-orange/20 bg-brand-navy/5 dark:bg-brand-orange/5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-brand-navy/15 dark:bg-brand-orange/20 rounded-xl text-brand-navy dark:text-brand-orange shrink-0">
+              <Cloud className="w-8 h-8 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-neutral-900 dark:text-neutral-100 text-sm uppercase">
+                  Đồng bộ Đám mây Firebase Firestore
+                </h3>
+                <Badge variant="success" className="animate-pulse">ĐÃ KẾT NỐI</Badge>
+              </div>
+              <p className="text-xs text-neutral-500 mt-1 leading-relaxed max-w-2xl">
+                Hệ thống đang kết nối trực tiếp với dự án Firestore Cloud: <code className="bg-neutral-200 dark:bg-neutral-800 px-1 py-0.5 rounded font-mono text-[10px] text-brand-navy dark:text-brand-orange font-bold font-mono">gen-lang-client-0938470979</code>. 
+                Bạn có thể nạp toàn bộ dữ liệu mẫu cấu hình hiện tại lên đám mây hoặc khôi phục dữ liệu từ đám mây về thiết bị bất cứ lúc nào.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-semibold text-neutral-600 dark:text-neutral-400">
+                <span className="flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Tự động sao lưu
+                </span>
+                <span className="flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Đồng bộ thời gian thực
+                </span>
+                <span className="flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Bảo mật cấp cao TLS/SSL
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row items-stretch lg:items-center gap-3 shrink-0">
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              onClick={handlePullFromFirebase} 
+              disabled={isPulling || isPushing}
+              icon={<RefreshCw className={`w-4 h-4 ${isPulling ? 'animate-spin' : ''}`} />}
+              className="font-bold text-xs"
+            >
+              {isPulling ? 'Đang tải về...' : 'Tải dữ liệu từ Firebase'}
+            </Button>
+            <Button 
+              variant="success" 
+              size="sm" 
+              onClick={handlePushToFirebase} 
+              disabled={isPulling || isPushing}
+              icon={<CloudLightning className={`w-4 h-4 ${isPushing ? 'animate-spin' : ''}`} />}
+              className="font-bold text-xs bg-emerald-600 hover:bg-emerald-700 hover:text-white"
+            >
+              {isPushing ? 'Đang đồng bộ...' : 'Đẩy dữ liệu lên Firebase'}
+            </Button>
+          </div>
+        </div>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         

@@ -1,0 +1,205 @@
+{
+  "entities": {
+    "AcademicYear": {
+      "title": "AcademicYear",
+      "description": "Academic Year configuration",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "startDate": { "type": "string" },
+        "endDate": { "type": "string" },
+        "totalStudyDays": { "type": "number" },
+        "totalBoardingDays": { "type": "number" },
+        "status": { "type": "string", "enum": ["active", "inactive"] }
+      },
+      "required": ["id", "name", "startDate", "endDate", "totalStudyDays", "totalBoardingDays", "status"]
+    },
+    "EducationLevel": {
+      "title": "EducationLevel",
+      "description": "Education level like primary, nursery, high school",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "code": { "type": "string" }
+      },
+      "required": ["id", "name", "code"]
+    },
+    "ClassItem": {
+      "title": "ClassItem",
+      "description": "Classes within levels",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "levelId": { "type": "string" }
+      },
+      "required": ["id", "name", "levelId"]
+    },
+    "FeeCategory": {
+      "title": "FeeCategory",
+      "description": "Category of fee",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "code": { "type": "string" }
+      },
+      "required": ["id", "name", "code"]
+    },
+    "FeeItem": {
+      "title": "FeeItem",
+      "description": "Individual fee items with prices",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "code": { "type": "string" },
+        "categoryId": { "type": "string" },
+        "price": { "type": "number" },
+        "unit": { "type": "string" },
+        "type": { "type": "string", "enum": ["mandatory", "optional"] },
+        "levelId": { "type": "string" },
+        "classId": { "type": "string" },
+        "yearId": { "type": "string" },
+        "startDate": { "type": "string" },
+        "endDate": { "type": "string" },
+        "visible": { "type": "boolean" }
+      },
+      "required": ["id", "name", "code", "categoryId", "price", "unit", "type", "levelId", "classId", "yearId", "startDate", "endDate", "visible"]
+    },
+    "DiscountPolicy": {
+      "title": "DiscountPolicy",
+      "description": "Discount policies and exemptions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "discountType": { "type": "string", "enum": ["percent", "amount"] },
+        "value": { "type": "number" },
+        "conditionType": { "type": "string", "enum": ["payment_term", "sibling", "early_bird", "custom"] },
+        "conditionValue": { "type": "string" },
+        "applicableLevelId": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "startDate": { "type": "string" },
+        "endDate": { "type": "string" }
+      },
+      "required": ["id", "name", "discountType", "value", "conditionType", "conditionValue", "applicableLevelId", "isActive", "startDate", "endDate"]
+    },
+    "FeeQuote": {
+      "title": "FeeQuote",
+      "description": "Generated school tuition fee quotation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentName": { "type": "string" },
+        "studentDob": { "type": "string" },
+        "yearId": { "type": "string" },
+        "levelId": { "type": "string" },
+        "classId": { "type": "string" },
+        "paymentTerm": { "type": "string", "enum": ["month", "quarter", "semester", "year"] },
+        "siblingOrder": { "type": "number" },
+        "isEarlyBird": { "type": "boolean" },
+        "subtotal": { "type": "number" },
+        "discountTotal": { "type": "number" },
+        "grandTotal": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "createdById": { "type": "string" },
+        "createdByName": { "type": "string" },
+        "validUntil": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["id", "studentName", "studentDob", "yearId", "levelId", "classId", "paymentTerm", "siblingOrder", "isEarlyBird", "subtotal", "discountTotal", "grandTotal", "createdAt", "createdById", "createdByName", "validUntil"]
+    },
+    "User": {
+      "title": "User",
+      "description": "System user profiles",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "username": { "type": "string" },
+        "fullName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "accountant", "admissions", "marketing"] },
+        "isActive": { "type": "boolean" },
+        "email": { "type": "string" }
+      },
+      "required": ["id", "username", "fullName", "role", "isActive", "email"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Traceability of system mutations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userRole": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "action": { "type": "string" },
+        "details": { "type": "string" },
+        "oldValue": { "type": "string" },
+        "newValue": { "type": "string" }
+      },
+      "required": ["id", "userId", "userName", "userRole", "timestamp", "action", "details"]
+    },
+    "SystemSettings": {
+      "title": "SystemSettings",
+      "description": "Global school brand and bank variables",
+      "type": "object",
+      "properties": {
+        "schoolName": { "type": "string" },
+        "schoolLogo": { "type": "string" },
+        "schoolAddress": { "type": "string" },
+        "schoolPhone": { "type": "string" },
+        "bankName": { "type": "string" },
+        "bankAccount": { "type": "string" },
+        "bankAccountName": { "type": "string" },
+        "quoteCounter": { "type": "number" }
+      },
+      "required": ["schoolName", "schoolLogo", "schoolAddress", "schoolPhone", "bankName", "bankAccount", "bankAccountName", "quoteCounter"]
+    }
+  },
+  "firestore": {
+    "academic_years/{id}": {
+      "schema": "AcademicYear",
+      "description": "Academic years list"
+    },
+    "education_levels/{id}": {
+      "schema": "EducationLevel",
+      "description": "Education Levels like preschool, primary, etc"
+    },
+    "classes/{id}": {
+      "schema": "ClassItem",
+      "description": "Classes associated with levels"
+    },
+    "fee_categories/{id}": {
+      "schema": "FeeCategory",
+      "description": "Fee grouping categories"
+    },
+    "fee_items/{id}": {
+      "schema": "FeeItem",
+      "description": "Biểu phí học phí chi tiết"
+    },
+    "discount_policies/{id}": {
+      "schema": "DiscountPolicy",
+      "description": "Exemptions and tuition reduction policies"
+    },
+    "fee_quotes/{id}": {
+      "schema": "FeeQuote",
+      "description": "Generated quotes in PDF or sheet format"
+    },
+    "users/{id}": {
+      "schema": "User",
+      "description": "System operators and permissions"
+    },
+    "audit_logs/{id}": {
+      "schema": "AuditLog",
+      "description": "Chronological audit trails"
+    },
+    "settings/{id}": {
+      "schema": "SystemSettings",
+      "description": "Global layout preferences"
+    }
+  }
+}
