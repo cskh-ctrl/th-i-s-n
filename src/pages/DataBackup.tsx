@@ -171,7 +171,7 @@ export default function DataBackup() {
                 <Badge variant="success" className="animate-pulse">ĐÃ KẾT NỐI</Badge>
               </div>
               <p className="text-xs text-neutral-500 mt-1 leading-relaxed max-w-2xl">
-                Hệ thống đang kết nối trực tiếp với dự án Firestore Cloud: <code className="bg-neutral-200 dark:bg-neutral-800 px-1 py-0.5 rounded font-mono text-[10px] text-brand-navy dark:text-brand-orange font-bold font-mono">gen-lang-client-0938470979</code>. 
+                Hệ thống đang kết nối trực tiếp với dự án Firestore Cloud: <code className="bg-neutral-200 dark:bg-neutral-800 px-1 py-0.5 rounded font-mono text-[10px] text-brand-navy dark:text-brand-orange font-bold font-mono">bangtinhphithaison</code>. 
                 Bạn có thể nạp toàn bộ dữ liệu mẫu cấu hình hiện tại lên đám mây hoặc khôi phục dữ liệu từ đám mây về thiết bị bất cứ lúc nào.
               </p>
               <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-semibold text-neutral-600 dark:text-neutral-400">
