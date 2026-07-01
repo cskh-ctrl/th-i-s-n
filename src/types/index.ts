@@ -118,6 +118,7 @@ export interface User {
   role: UserRole;
   isActive: boolean;
   email: string;
+  password?: string;
 }
 
 export interface AuditLog {

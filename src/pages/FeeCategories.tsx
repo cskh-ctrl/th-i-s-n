@@ -3,7 +3,7 @@ import { Database } from '../store/db';
 import { FeeCategory } from '../types';
 import { useApp } from '../contexts/AppContext';
 import { Card, Input, Button, Modal } from '../components/UI';
-import { Plus, Edit2, Trash2, Layers } from 'lucide-react';
+import { Plus, Edit2, Trash2, Layers, Save } from 'lucide-react';
 
 export default function FeeCategories() {
   const { currentUser, addToast, dbTrigger, triggerDbRefresh } = useApp();
@@ -145,7 +145,9 @@ export default function FeeCategories() {
         footerButtons={
           <>
             <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Hủy</Button>
-            <Button variant="primary" onClick={handleSaveCat}>Lưu</Button>
+            <Button variant="primary" onClick={handleSaveCat} icon={<Save className="w-4 h-4" />}>
+              Xác nhận & Lưu danh mục
+            </Button>
           </>
         }
       >

@@ -3,7 +3,7 @@ import { Database } from '../store/db';
 import { FeeItem, FeeCategory, EducationLevel, ClassItem, AcademicYear } from '../types';
 import { useApp } from '../contexts/AppContext';
 import { Card, Input, Button, Badge, Modal, Select } from '../components/UI';
-import { Plus, Edit2, Trash2, Search, Upload, Info, Check, Eye, EyeOff } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, Upload, Info, Check, Eye, EyeOff, Save } from 'lucide-react';
 
 export default function FeeItems() {
   const { currentUser, addToast, dbTrigger, triggerDbRefresh } = useApp();
@@ -404,8 +404,8 @@ export default function FeeItems() {
             <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
               Hủy bỏ
             </Button>
-            <Button variant="primary" onClick={handleSaveItem}>
-              {editingItem ? 'Cập nhật' : 'Tạo mới'}
+            <Button variant="primary" onClick={handleSaveItem} icon={<Save className="w-4 h-4" />}>
+              {editingItem ? 'Xác nhận & Lưu thay đổi' : 'Xác nhận & Tạo mới'}
             </Button>
           </>
         }

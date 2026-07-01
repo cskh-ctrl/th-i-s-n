@@ -38,7 +38,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     setActiveTab, 
     toasts, 
     removeToast,
-    selectedQuoteForSheet
+    selectedQuoteForSheet,
+    logout
   } = useApp();
   const { theme, toggleTheme } = useTheme();
   
@@ -196,23 +197,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="p-4 border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950/40">
           <div className="flex flex-col gap-3">
             
-            {/* Simulation Identity Switcher */}
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider pl-1.5">
-                Mô phỏng vai trò
-              </span>
-              <select
-                value={currentUser.role}
-                onChange={(e) => switchUser(e.target.value as any)}
-                className="text-xs font-semibold bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-2 text-neutral-800 dark:text-neutral-200 outline-none w-full focus:ring-1 focus:ring-brand-navy cursor-pointer"
-              >
-                <option value="admin">Quản trị viên (Admin)</option>
-                <option value="accountant">Kế toán (Accountant)</option>
-                <option value="admissions">Tuyển sinh (Admissions)</option>
-                <option value="marketing">Tiếp thị (Marketing)</option>
-              </select>
-            </div>
-
             {/* Current Profile Card */}
             <div className="flex items-center gap-3 p-1.5 border border-neutral-150 dark:border-neutral-800 bg-white dark:bg-neutral-900 rounded-lg">
               <div className="w-8 h-8 rounded-full bg-brand-navy/10 text-brand-navy dark:text-brand-orange font-bold flex items-center justify-center text-xs border border-brand-navy/20">
@@ -227,6 +211,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </p>
               </div>
             </div>
+
+            {/* Real Logout Button */}
+            <button
+              onClick={logout}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-white hover:bg-rose-50/50 dark:bg-neutral-900 dark:hover:bg-rose-950/20 text-neutral-600 hover:text-rose-600 dark:text-neutral-300 dark:hover:text-rose-400 rounded-lg text-xs font-bold transition-all border border-neutral-200 dark:border-neutral-800 hover:border-rose-200 cursor-pointer"
+              title="Đăng xuất khỏi hệ thống"
+            >
+              <LogOut className="w-3.5 h-3.5 text-neutral-400 hover:text-rose-500" />
+              <span>Đăng xuất tài khoản</span>
+            </button>
 
           </div>
         </div>

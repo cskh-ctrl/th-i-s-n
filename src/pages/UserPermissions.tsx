@@ -17,6 +17,7 @@ export default function UserPermissions() {
   const [username, setUsername] = useState('');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [role, setRole] = useState<UserRole>('admissions');
   const [isActive, setIsActive] = useState(true);
 
@@ -25,6 +26,7 @@ export default function UserPermissions() {
     setUsername('');
     setFullName('');
     setEmail('');
+    setPassword('1234');
     setRole('admissions');
     setIsActive(true);
     setIsModalOpen(true);
@@ -35,24 +37,26 @@ export default function UserPermissions() {
     setUsername(usr.username);
     setFullName(usr.fullName);
     setEmail(usr.email);
+    setPassword(usr.password || '1234');
     setRole(usr.role);
     setIsActive(usr.isActive);
     setIsModalOpen(true);
   };
 
   const handleSaveUser = () => {
-    if (!username.trim() || !fullName.trim() || !email.trim()) {
-      addToast('error', 'Lỗi nhập liệu', 'Vui lòng điền đầy đủ các thông tin bắt buộc.');
+    if (!username.trim() || !fullName.trim() || !email.trim() || !password.trim()) {
+      addToast('error', 'Lỗi nhập liệu', 'Vui lòng điền đầy đủ các thông tin bắt buộc và mật khẩu.');
       return;
     }
 
     const payload: User = {
       id: editingUser?.id || `usr-${Date.now()}`,
-      username: username.trim().toLowerCase(),
+      username: username.trim(),
       fullName: fullName.trim(),
       email: email.trim().toLowerCase(),
       role,
-      isActive
+      isActive,
+      password: password.trim()
     };
 
     let updated = [...initialUsers];
@@ -60,6 +64,12 @@ export default function UserPermissions() {
       updated = updated.map(u => u.id === editingUser.id ? payload : u);
       addToast('success', 'Cập nhật thành công', `Đã lưu tài khoản: ${fullName}`);
     } else {
+      // Check if username already exists
+      const exists = initialUsers.some(u => u.username.toLowerCase() === username.trim().toLowerCase());
+      if (exists) {
+        addToast('error', 'Lỗi tài khoản', 'Tên đăng nhập này đã tồn tại trên hệ thống.');
+        return;
+      }
       updated = [...updated, payload];
       addToast('success', 'Tạo mới thành công', `Đã cấp quyền cho tài khoản mới: ${fullName}`);
     }
@@ -135,6 +145,7 @@ export default function UserPermissions() {
                 <div>
                   <h4 className="font-bold text-sm text-neutral-800 dark:text-neutral-200 leading-snug">{usr.fullName}</h4>
                   <p className="text-[10px] text-neutral-400">@{usr.username} | {usr.email}</p>
+                  <p className="text-[10px] text-brand-orange font-mono mt-1 font-semibold">Mật khẩu: {usr.password || '1234'}</p>
                 </div>
               </div>
 
@@ -249,6 +260,14 @@ export default function UserPermissions() {
               <option value="false">Tạm khóa / Vô hiệu hóa (Locked)</option>
             </Select>
           </div>
+
+          <Input
+            label="Mật khẩu đăng nhập *"
+            placeholder="Mật khẩu đăng nhập cho tài khoản này..."
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
         </div>
       </Modal>
 

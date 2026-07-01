@@ -4,6 +4,7 @@ import { AppProvider, useApp, ActiveTab } from './contexts/AppContext';
 import DashboardLayout from './layouts/DashboardLayout';
 
 // Import Pages
+import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import TuitionCalc from './pages/TuitionCalc';
 import QuoteHistory from './pages/QuoteHistory';
@@ -23,7 +24,12 @@ import { Button, Card } from './components/UI';
 import { Calculator, History } from 'lucide-react';
 
 function MainAppContent() {
-  const { activeTab, setActiveTab, selectedQuoteForSheet, setSelectedQuoteForSheet } = useApp();
+  const { activeTab, setActiveTab, selectedQuoteForSheet, setSelectedQuoteForSheet, isLoggedIn } = useApp();
+
+  // If user is not logged in, force the Login page
+  if (!isLoggedIn) {
+    return <Login />;
+  }
 
   // Render correct page view based on router activeTab selection
   const renderActiveTab = () => {

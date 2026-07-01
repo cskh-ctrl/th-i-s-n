@@ -363,10 +363,10 @@ const defaultDiscountPolicies: DiscountPolicy[] = [
 ];
 
 const defaultUsers: User[] = [
-  { id: 'usr-admin', username: 'admin', fullName: 'Nguyễn Văn Trỗi', role: 'admin', isActive: true, email: 'admin@truongvietanh.com' },
-  { id: 'usr-ketoan', username: 'ketoan', fullName: 'Phan Thị Thanh', role: 'accountant', isActive: true, email: 'ketoan@truongvietanh.com' },
-  { id: 'usr-tuyensinh', username: 'tuyensinh', fullName: 'Trần Minh Hòa', role: 'admissions', isActive: true, email: 'tuyensinh@truongvietanh.com' },
-  { id: 'usr-marketing', username: 'marketing', fullName: 'Lê Hoàng Nam', role: 'marketing', isActive: true, email: 'marketing@truongvietanh.com' }
+  { id: 'usr-admin', username: 'admin', fullName: 'Nguyễn Văn Trỗi', role: 'admin', isActive: true, email: 'admin@truongvietanh.com', password: '1234' },
+  { id: 'usr-ketoan', username: 'ketoan', fullName: 'Phan Thị Thanh', role: 'accountant', isActive: true, email: 'ketoan@truongvietanh.com', password: '1234' },
+  { id: 'usr-tuyensinh', username: 'tuyensinh', fullName: 'Trần Minh Hòa', role: 'admissions', isActive: true, email: 'tuyensinh@truongvietanh.com', password: '1234' },
+  { id: 'usr-marketing', username: 'marketing', fullName: 'Lê Hoàng Nam', role: 'marketing', isActive: true, email: 'marketing@truongvietanh.com', password: '1234' }
 ];
 
 const defaultSettings: SystemSettings = {

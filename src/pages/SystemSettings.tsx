@@ -20,6 +20,50 @@ export default function SystemSettings() {
   const [bankAccount, setBankAccount] = useState(currentSettings.bankAccount);
   const [bankAccountName, setBankAccountName] = useState(currentSettings.bankAccountName);
 
+  const handleSaveSchool = () => {
+    if (!schoolName.trim() || !schoolAddress.trim() || !schoolPhone.trim()) {
+      addToast('error', 'Lỗi nhập liệu', 'Vui lòng điền đầy đủ các thông tin cài đặt trường học bắt buộc.');
+      return;
+    }
+
+    try {
+      const payload: ISettings = {
+        ...currentSettings,
+        schoolName: schoolName.trim(),
+        schoolAddress: schoolAddress.trim(),
+        schoolPhone: schoolPhone.trim()
+      };
+
+      Database.setSettings(payload, currentUser);
+      triggerDbRefresh();
+      addToast('success', 'Lưu thành công', 'Cấu hình thông tin trường học đã được cập nhật.');
+    } catch {
+      addToast('error', 'Lỗi xử lý', 'Có lỗi xảy ra khi lưu trữ thông tin trường học.');
+    }
+  };
+
+  const handleSaveBank = () => {
+    if (!bankName.trim() || !bankAccount.trim() || !bankAccountName.trim()) {
+      addToast('error', 'Lỗi nhập liệu', 'Vui lòng điền đầy đủ thông tin ngân hàng bắt buộc.');
+      return;
+    }
+
+    try {
+      const payload: ISettings = {
+        ...currentSettings,
+        bankName: bankName.trim(),
+        bankAccount: bankAccount.trim(),
+        bankAccountName: bankAccountName.trim()
+      };
+
+      Database.setSettings(payload, currentUser);
+      triggerDbRefresh();
+      addToast('success', 'Lưu thành công', 'Cấu hình ngân hàng VietQR đã được cập nhật.');
+    } catch {
+      addToast('error', 'Lỗi xử lý', 'Có lỗi xảy ra khi lưu trữ thông tin cấu hình ngân hàng.');
+    }
+  };
+
   const handleSaveSettings = () => {
     if (!schoolName.trim() || !schoolAddress.trim() || !bankAccount.trim() || !bankAccountName.trim()) {
       addToast('error', 'Lỗi nhập liệu', 'Vui lòng điền đầy đủ các thông tin cài đặt trường học bắt buộc.');
@@ -90,6 +134,11 @@ export default function SystemSettings() {
               required
             />
           </div>
+          <div className="flex justify-end mt-5 pt-4 border-t border-neutral-100 dark:border-neutral-800">
+            <Button variant="primary" size="sm" onClick={handleSaveSchool} icon={<Save className="w-4 h-4" />}>
+              Xác nhận & Lưu thông tin trường học
+            </Button>
+          </div>
         </Card>
 
         {/* Card 2: Bank transfer setup for VietQR */}
@@ -125,6 +174,11 @@ export default function SystemSettings() {
                 required
               />
             </div>
+          </div>
+          <div className="flex justify-end mt-5 pt-4 border-t border-neutral-100 dark:border-neutral-800">
+            <Button variant="primary" size="sm" onClick={handleSaveBank} icon={<Save className="w-4 h-4" />}>
+              Xác nhận & Lưu tài khoản ngân hàng
+            </Button>
           </div>
         </Card>
 

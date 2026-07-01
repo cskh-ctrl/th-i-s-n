@@ -3,7 +3,7 @@ import { Database } from '../store/db';
 import { ClassItem, EducationLevel } from '../types';
 import { useApp } from '../contexts/AppContext';
 import { Card, Input, Button, Modal, Select } from '../components/UI';
-import { Plus, Edit2, Trash2, Users } from 'lucide-react';
+import { Plus, Edit2, Trash2, Users, Save } from 'lucide-react';
 
 export default function Classes() {
   const { currentUser, addToast, dbTrigger, triggerDbRefresh } = useApp();
@@ -148,8 +148,10 @@ export default function Classes() {
         title={editingClass ? 'Hiệu chỉnh lớp học' : 'Tạo lớp học mới'}
         footerButtons={
           <>
-            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Hủy</Button>
-            <Button variant="primary" onClick={handleSaveClass}>Lưu</Button>
+            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Hủy bỏ</Button>
+            <Button variant="primary" onClick={handleSaveClass} icon={<Save className="w-4 h-4" />}>
+              {editingClass ? 'Xác nhận & Lưu lớp học' : 'Xác nhận & Tạo mới'}
+            </Button>
           </>
         }
       >
