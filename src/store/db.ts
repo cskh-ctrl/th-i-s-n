@@ -572,7 +572,40 @@ export class Database {
   }
 
   public static getUsers(): User[] {
-    return this.get<User[]>('users', defaultUsers);
+    let list = this.get<User[]>('users', defaultUsers);
+    if (!list || list.length === 0) {
+      list = [...defaultUsers];
+      this.set('users', list);
+    }
+    // Check if admin is present
+    const hasAdmin = list.some(u => u.username.toLowerCase() === 'admin');
+    if (!hasAdmin) {
+      const adminUser = defaultUsers.find(u => u.username.toLowerCase() === 'admin') || {
+        id: 'usr-admin',
+        username: 'admin',
+        fullName: 'Nguyễn Văn Trỗi',
+        role: 'admin',
+        isActive: true,
+        email: 'admin@truongvietanh.com',
+        password: '1234'
+      };
+      list = [...list, adminUser];
+      this.set('users', list);
+    }
+    // Check if any user has no password
+    let updated = false;
+    const mapped = list.map(u => {
+      if (!u.password) {
+        updated = true;
+        return { ...u, password: '1234' };
+      }
+      return u;
+    });
+    if (updated) {
+      this.set('users', mapped);
+      list = mapped;
+    }
+    return list;
   }
 
   public static setUsers(users: User[], actor?: User, details?: { action: string }): void {
@@ -722,10 +755,37 @@ export class Database {
 
   public static async seedIfEmpty(): Promise<void> {
     try {
-      const snap = await getDocs(collection(db, 'academic_years'));
-      if (snap.empty) {
-        console.log("Firestore database is empty. Initializing with default local data...");
-        await this.pushToFirebase();
+      const collections = [
+        { key: 'academic_years', defaultVal: defaultAcademicYears },
+        { key: 'education_levels', defaultVal: defaultEducationLevels },
+        { key: 'classes', defaultVal: defaultClasses },
+        { key: 'fee_categories', defaultVal: defaultFeeCategories },
+        { key: 'fee_items', defaultVal: defaultFeeItems },
+        { key: 'discount_policies', defaultVal: defaultDiscountPolicies },
+        { key: 'fee_quotes', defaultVal: defaultQuotes },
+        { key: 'users', defaultVal: defaultUsers },
+        { key: 'audit_logs', defaultVal: defaultAuditLogs }
+      ];
+
+      // Check settings first
+      const settingsSnap = await getDocs(collection(db, 'settings'));
+      if (settingsSnap.empty) {
+        console.log("Firestore settings is empty. Seeding defaults...");
+        await setDoc(doc(db, 'settings', 'global'), defaultSettings);
+      }
+
+      // Check and seed each collection
+      for (const col of collections) {
+        const snap = await getDocs(collection(db, col.key));
+        if (snap.empty) {
+          console.log(`Firestore collection ${col.key} is empty. Seeding defaults...`);
+          // Push default items
+          for (const item of col.defaultVal) {
+            if (item && (item as any).id) {
+              await setDoc(doc(db, col.key, (item as any).id), item);
+            }
+          }
+        }
       }
     } catch (e) {
       console.warn("Could not check/seed Firestore:", e);
