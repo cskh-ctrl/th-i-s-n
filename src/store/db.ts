@@ -754,16 +754,14 @@ export class Database {
           items.push(docSnap.data());
         });
         
-        if (items.length > 0) {
-          // Compare with local copy to avoid rendering loop
-          const localItems = this.get<any[]>(key, []);
-          // Sort both arrays by id (or keep as is) to verify true similarity
-          const localStr = JSON.stringify([...localItems].sort((a,b) => (a.id || '').localeCompare(b.id || '')));
-          const remoteStr = JSON.stringify([...items].sort((a,b) => (a.id || '').localeCompare(b.id || '')));
-          if (localStr !== remoteStr) {
-            this.set(key, items);
-            onUpdate();
-          }
+        // Compare with local copy to avoid rendering loop
+        const localItems = this.get<any[]>(key, []);
+        // Sort both arrays by id (or keep as is) to verify true similarity
+        const localStr = JSON.stringify([...localItems].sort((a,b) => (a.id || '').localeCompare(b.id || '')));
+        const remoteStr = JSON.stringify([...items].sort((a,b) => (a.id || '').localeCompare(b.id || '')));
+        if (localStr !== remoteStr) {
+          this.set(key, items);
+          onUpdate();
         }
       });
       unsubscribes.push(unsub);
