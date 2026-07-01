@@ -466,6 +466,8 @@ const defaultAuditLogs: AuditLog[] = [
 
 // Helper to interact with LocalStorage database
 export class Database {
+  private static activeSyncs = new Set<string>();
+
   private static get<T>(key: string, defaultValue: T): T {
     try {
       const data = localStorage.getItem(`thaison_school_${key}`);
@@ -721,6 +723,7 @@ export class Database {
   // --- Firebase Cloud Sync Functions ---
 
   private static async syncListToFirestore(collectionName: string, items: any[]): Promise<void> {
+    this.activeSyncs.add(collectionName);
     try {
       // 1. Fetch current IDs in Firestore to determine deleted ones
       const snapshot = await getDocs(collection(db, collectionName));
@@ -742,14 +745,24 @@ export class Database {
       }
     } catch (e) {
       console.error(`Failed to sync ${collectionName} to Firestore:`, e);
+    } finally {
+      // Hold the lock briefly to let intermediate echo triggers settle
+      setTimeout(() => {
+        this.activeSyncs.delete(collectionName);
+      }, 1000);
     }
   }
 
   private static async syncSettingsToFirestore(settings: SystemSettings): Promise<void> {
+    this.activeSyncs.add('settings');
     try {
       await setDoc(doc(db, 'settings', 'global'), settings);
     } catch (e) {
       console.error('Failed to sync settings to Firestore:', e);
+    } finally {
+      setTimeout(() => {
+        this.activeSyncs.delete('settings');
+      }, 1000);
     }
   }
 
@@ -809,14 +822,27 @@ export class Database {
 
     collections.forEach(({ key, firestoreName }) => {
       const unsub = onSnapshot(collection(db, firestoreName), (snapshot) => {
+        // If we are currently executing a write/sync operation, ignore snapshot echoes
+        if (this.activeSyncs.has(key)) {
+          return;
+        }
+
         const items: any[] = [];
         snapshot.forEach((docSnap) => {
           items.push(docSnap.data());
         });
         
-        // Compare with local copy to avoid rendering loop
         const localItems = this.get<any[]>(key, []);
-        // Sort both arrays by id (or keep as is) to verify true similarity
+
+        // Safe fallback upload: if Firestore is empty but our local storage is populated,
+        // sync the local items up to populate Firestore instead of wiping them out.
+        if (snapshot.empty && localItems.length > 0) {
+          console.log(`Firestore collection "${firestoreName}" is empty. Preserving local changes and uploading to cloud...`);
+          this.syncListToFirestore(key, localItems);
+          return;
+        }
+
+        // Compare with local copy to avoid rendering loop
         const localStr = JSON.stringify([...localItems].sort((a,b) => (a.id || '').localeCompare(b.id || '')));
         const remoteStr = JSON.stringify([...items].sort((a,b) => (a.id || '').localeCompare(b.id || '')));
         if (localStr !== remoteStr) {
@@ -829,6 +855,17 @@ export class Database {
 
     // Listen to settings
     const unsubSettings = onSnapshot(collection(db, 'settings'), (snapshot) => {
+      if (this.activeSyncs.has('settings')) {
+        return;
+      }
+
+      if (snapshot.empty) {
+        const localSettings = this.getSettings();
+        console.log("Firestore settings is empty. Syncing local settings to cloud...");
+        this.syncSettingsToFirestore(localSettings);
+        return;
+      }
+
       snapshot.forEach((docSnap) => {
         if (docSnap.id === 'global') {
           const data = docSnap.data();
