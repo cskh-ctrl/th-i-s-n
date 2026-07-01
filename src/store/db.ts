@@ -11,7 +11,7 @@ import {
   SystemSettings 
 } from '../types';
 import { db } from '../lib/firebase';
-import { doc, setDoc, getDocs, collection } from 'firebase/firestore';
+import { doc, setDoc, getDocs, collection, onSnapshot, deleteDoc } from 'firebase/firestore';
 
 // Default initial data for the database
 const defaultAcademicYears: AcademicYear[] = [
@@ -488,6 +488,7 @@ export class Database {
   public static setAcademicYears(years: AcademicYear[], actor?: User, details?: { action: string, oldValue?: string, newValue?: string }): void {
     const oldVal = JSON.stringify(this.getAcademicYears());
     this.set('academic_years', years);
+    this.syncListToFirestore('academic_years', years);
     if (actor && details) {
       this.addAuditLog(actor, details.action, `${details.action}: Thay đổi danh sách năm học`, oldVal, JSON.stringify(years));
     }
@@ -500,6 +501,7 @@ export class Database {
   public static setEducationLevels(levels: EducationLevel[], actor?: User, details?: { action: string, oldValue?: string, newValue?: string }): void {
     const oldVal = JSON.stringify(this.getEducationLevels());
     this.set('education_levels', levels);
+    this.syncListToFirestore('education_levels', levels);
     if (actor && details) {
       this.addAuditLog(actor, details.action, `${details.action}: Thay đổi khối học`, oldVal, JSON.stringify(levels));
     }
@@ -512,6 +514,7 @@ export class Database {
   public static setClasses(classes: ClassItem[], actor?: User, details?: { action: string, oldValue?: string, newValue?: string }): void {
     const oldVal = JSON.stringify(this.getClasses());
     this.set('classes', classes);
+    this.syncListToFirestore('classes', classes);
     if (actor && details) {
       this.addAuditLog(actor, details.action, `${details.action}: Thay đổi danh sách lớp học`, oldVal, JSON.stringify(classes));
     }
@@ -524,6 +527,7 @@ export class Database {
   public static setFeeCategories(categories: FeeCategory[], actor?: User, details?: { action: string, oldValue?: string, newValue?: string }): void {
     const oldVal = JSON.stringify(this.getFeeCategories());
     this.set('fee_categories', categories);
+    this.syncListToFirestore('fee_categories', categories);
     if (actor && details) {
       this.addAuditLog(actor, details.action, `${details.action}: Thay đổi danh mục khoản phí`, oldVal, JSON.stringify(categories));
     }
@@ -536,6 +540,7 @@ export class Database {
   public static setFeeItems(items: FeeItem[], actor?: User, details?: { action: string, oldValue?: string, newValue?: string }): void {
     const oldVal = JSON.stringify(this.getFeeItems());
     this.set('fee_items', items);
+    this.syncListToFirestore('fee_items', items);
     if (actor && details) {
       this.addAuditLog(actor, details.action, `${details.action}: Thay đổi danh sách biểu phí`, oldVal, JSON.stringify(items));
     }
@@ -548,6 +553,7 @@ export class Database {
   public static setDiscountPolicies(policies: DiscountPolicy[], actor?: User, details?: { action: string, oldValue?: string, newValue?: string }): void {
     const oldVal = JSON.stringify(this.getDiscountPolicies());
     this.set('discount_policies', policies);
+    this.syncListToFirestore('discount_policies', policies);
     if (actor && details) {
       this.addAuditLog(actor, details.action, `${details.action}: Thay đổi chính sách giảm giá`, oldVal, JSON.stringify(policies));
     }
@@ -559,6 +565,7 @@ export class Database {
 
   public static setQuotes(quotes: FeeQuote[], actor?: User, details?: { action: string }): void {
     this.set('fee_quotes', quotes);
+    this.syncListToFirestore('fee_quotes', quotes);
     if (actor && details) {
       this.addAuditLog(actor, details.action, `${details.action}: Cập nhật danh sách báo phí`);
     }
@@ -570,6 +577,7 @@ export class Database {
 
   public static setUsers(users: User[], actor?: User, details?: { action: string }): void {
     this.set('users', users);
+    this.syncListToFirestore('users', users);
     if (actor && details) {
       this.addAuditLog(actor, details.action, `${details.action}: Cập nhật thông tin người dùng`);
     }
@@ -582,6 +590,7 @@ export class Database {
   public static setSettings(settings: SystemSettings, actor?: User): void {
     const oldVal = JSON.stringify(this.getSettings());
     this.set('settings', settings);
+    this.syncSettingsToFirestore(settings);
     if (actor) {
       this.addAuditLog(actor, 'CÀI ĐẶT HỆ THỐNG', 'Cập nhật cấu hình thông tin trường học & ngân hàng', oldVal, JSON.stringify(settings));
     }
@@ -605,7 +614,9 @@ export class Database {
       newValue
     };
     logs.unshift(newLog); // Place newest logs at the top
-    this.set('audit_logs', logs.slice(0, 1000)); // Keep last 1000 logs
+    const sliced = logs.slice(0, 1000);
+    this.set('audit_logs', sliced); // Keep last 1000 logs
+    setDoc(doc(db, 'audit_logs', newLog.id), newLog).catch(e => console.error('Error writing log to Firestore:', e));
   }
 
   // Generate clean quote reference TS-YYYY-000125 and increments setting counter
@@ -675,6 +686,108 @@ export class Database {
   }
 
   // --- Firebase Cloud Sync Functions ---
+
+  private static async syncListToFirestore(collectionName: string, items: any[]): Promise<void> {
+    try {
+      // 1. Fetch current IDs in Firestore to determine deleted ones
+      const snapshot = await getDocs(collection(db, collectionName));
+      const existingIds = new Set(snapshot.docs.map(docSnap => docSnap.id));
+      const newIds = new Set(items.map(item => item.id));
+
+      // 2. Delete removed items
+      for (const id of existingIds) {
+        if (!newIds.has(id)) {
+          await deleteDoc(doc(db, collectionName, id));
+        }
+      }
+
+      // 3. Write or update active items
+      for (const item of items) {
+        if (item && item.id) {
+          await setDoc(doc(db, collectionName, item.id), item);
+        }
+      }
+    } catch (e) {
+      console.error(`Failed to sync ${collectionName} to Firestore:`, e);
+    }
+  }
+
+  private static async syncSettingsToFirestore(settings: SystemSettings): Promise<void> {
+    try {
+      await setDoc(doc(db, 'settings', 'global'), settings);
+    } catch (e) {
+      console.error('Failed to sync settings to Firestore:', e);
+    }
+  }
+
+  public static async seedIfEmpty(): Promise<void> {
+    try {
+      const snap = await getDocs(collection(db, 'academic_years'));
+      if (snap.empty) {
+        console.log("Firestore database is empty. Initializing with default local data...");
+        await this.pushToFirebase();
+      }
+    } catch (e) {
+      console.warn("Could not check/seed Firestore:", e);
+    }
+  }
+
+  public static startRealtimeSync(onUpdate: () => void): () => void {
+    const unsubscribes: (() => void)[] = [];
+
+    const collections = [
+      { key: 'academic_years', firestoreName: 'academic_years' },
+      { key: 'education_levels', firestoreName: 'education_levels' },
+      { key: 'classes', firestoreName: 'classes' },
+      { key: 'fee_categories', firestoreName: 'fee_categories' },
+      { key: 'fee_items', firestoreName: 'fee_items' },
+      { key: 'discount_policies', firestoreName: 'discount_policies' },
+      { key: 'fee_quotes', firestoreName: 'fee_quotes' },
+      { key: 'users', firestoreName: 'users' },
+      { key: 'audit_logs', firestoreName: 'audit_logs' }
+    ];
+
+    collections.forEach(({ key, firestoreName }) => {
+      const unsub = onSnapshot(collection(db, firestoreName), (snapshot) => {
+        const items: any[] = [];
+        snapshot.forEach((docSnap) => {
+          items.push(docSnap.data());
+        });
+        
+        if (items.length > 0) {
+          // Compare with local copy to avoid rendering loop
+          const localItems = this.get<any[]>(key, []);
+          // Sort both arrays by id (or keep as is) to verify true similarity
+          const localStr = JSON.stringify([...localItems].sort((a,b) => (a.id || '').localeCompare(b.id || '')));
+          const remoteStr = JSON.stringify([...items].sort((a,b) => (a.id || '').localeCompare(b.id || '')));
+          if (localStr !== remoteStr) {
+            this.set(key, items);
+            onUpdate();
+          }
+        }
+      });
+      unsubscribes.push(unsub);
+    });
+
+    // Listen to settings
+    const unsubSettings = onSnapshot(collection(db, 'settings'), (snapshot) => {
+      snapshot.forEach((docSnap) => {
+        if (docSnap.id === 'global') {
+          const data = docSnap.data();
+          const localSettings = this.getSettings();
+          if (JSON.stringify(localSettings) !== JSON.stringify(data)) {
+            this.set('settings', data as SystemSettings);
+            onUpdate();
+          }
+        }
+      });
+    });
+    unsubscribes.push(unsubSettings);
+
+    return () => {
+      unsubscribes.forEach(unsub => unsub());
+    };
+  }
 
   public static async pushToFirebase(): Promise<void> {
     try {

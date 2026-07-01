@@ -57,6 +57,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setDbTrigger(prev => prev + 1);
   };
 
+  useEffect(() => {
+    // Seed initial data to Firestore if it is a brand-new DB setup
+    Database.seedIfEmpty().then(() => {
+      triggerDbRefresh();
+    });
+
+    // Start listening for real-time changes
+    const unsubscribe = Database.startRealtimeSync(() => {
+      triggerDbRefresh();
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
   const addToast = (type: 'success' | 'error' | 'info' | 'warning', title: string, message: string) => {
     const id = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     setToasts(prev => [...prev, { id, type, title, message }]);

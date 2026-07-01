@@ -9,51 +9,16 @@ import {
   Trash2, 
   Activity, 
   Info, 
-  RefreshCw,
   Search,
   CheckCircle2,
   AlertOctagon,
   Cloud,
-  CloudLightning,
   Database as DbStackIcon
 } from 'lucide-react';
 
 export default function DataBackup() {
   const { currentUser, addToast, dbTrigger, triggerDbRefresh } = useApp();
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Firebase Sync States
-  const [isPushing, setIsPushing] = useState(false);
-  const [isPulling, setIsPulling] = useState(false);
-
-  const handlePushToFirebase = async () => {
-    setIsPushing(true);
-    try {
-      await Database.pushToFirebase();
-      addToast('success', 'Đồng bộ đám mây thành công', 'Đã tải toàn bộ dữ liệu cấu hình lên cơ sở dữ liệu Firebase Firestore.');
-      triggerDbRefresh();
-    } catch (e: any) {
-      addToast('error', 'Đồng bộ thất bại', e.message || 'Lỗi không xác định khi ghi dữ liệu lên Cloud.');
-    } finally {
-      setIsPushing(false);
-    }
-  };
-
-  const handlePullFromFirebase = async () => {
-    if (!window.confirm('Cảnh báo: Tải dữ liệu từ Firebase sẽ ghi đè toàn bộ dữ liệu hiện tại trên trình duyệt của bạn. Tiếp tục?')) {
-      return;
-    }
-    setIsPulling(true);
-    try {
-      await Database.pullFromFirebase();
-      addToast('success', 'Tải dữ liệu đám mây thành công', 'Hệ thống đã cập nhật toàn bộ biểu phí mới nhất từ Firebase Firestore.');
-      triggerDbRefresh();
-    } catch (e: any) {
-      addToast('error', 'Tải dữ liệu thất bại', e.message || 'Lỗi không xác định khi tải dữ liệu từ Cloud.');
-    } finally {
-      setIsPulling(false);
-    }
-  };
 
   // 1. Fetch DB
   const initialLogs = useMemo(() => Database.getAuditLogs(), [dbTrigger]);
@@ -157,57 +122,34 @@ export default function DataBackup() {
       </div>
 
       {/* Firebase Cloud Sync Control Panel */}
-      <Card className="border-brand-navy/20 dark:border-brand-orange/20 bg-brand-navy/5 dark:bg-brand-orange/5">
+      <Card className="border-emerald-500/20 bg-emerald-50/5 dark:bg-emerald-950/10 border-dashed border-2">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="flex items-start gap-4">
-            <div className="p-3 bg-brand-navy/15 dark:bg-brand-orange/20 rounded-xl text-brand-navy dark:text-brand-orange shrink-0">
-              <Cloud className="w-8 h-8 animate-pulse" />
+            <div className="p-3 bg-emerald-100 dark:bg-emerald-950/40 rounded-xl text-emerald-600 shrink-0">
+              <Cloud className="w-8 h-8 animate-bounce" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-bold text-neutral-900 dark:text-neutral-100 text-sm uppercase">
-                  Đồng bộ Đám mây Firebase Firestore
+                  Cơ sở dữ liệu đám mây Firebase Firestore Realtime
                 </h3>
-                <Badge variant="success" className="animate-pulse">ĐÃ KẾT NỐI</Badge>
+                <Badge variant="success" className="animate-pulse bg-emerald-100 dark:bg-emerald-950 text-emerald-600 border-emerald-500/20 font-bold">KẾT NỐI TỰ ĐỘNG</Badge>
               </div>
-              <p className="text-xs text-neutral-500 mt-1 leading-relaxed max-w-2xl">
-                Hệ thống đang kết nối trực tiếp với dự án Firestore Cloud: <code className="bg-neutral-200 dark:bg-neutral-800 px-1 py-0.5 rounded font-mono text-[10px] text-brand-navy dark:text-brand-orange font-bold font-mono">bangtinhphithaison</code>. 
-                Bạn có thể nạp toàn bộ dữ liệu mẫu cấu hình hiện tại lên đám mây hoặc khôi phục dữ liệu từ đám mây về thiết bị bất cứ lúc nào.
+              <p className="text-xs text-neutral-500 mt-1 leading-relaxed max-w-3xl">
+                Hệ thống đã loại bỏ cơ chế nạp thủ công. Mọi thao tác cập nhật biểu phí, cài đặt năm học, quản lý lớp học, phân quyền tài khoản, thêm báo phí hay ghi nhật ký hệ thống đều được <strong>tự động lưu trữ trực tiếp lên Đám mây</strong> thuộc dự án Firebase: <code className="bg-neutral-200 dark:bg-neutral-800 px-1 py-0.5 rounded font-mono text-[10px] text-brand-navy dark:text-brand-orange font-bold font-mono">bangtinhphithaison</code> ở chế độ thời gian thực (Real-time).
               </p>
               <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-semibold text-neutral-600 dark:text-neutral-400">
-                <span className="flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Tự động sao lưu
+                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Tự động sao lưu tức thì
                 </span>
-                <span className="flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Đồng bộ thời gian thực
+                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Đồng bộ hai chiều thời gian thực
                 </span>
-                <span className="flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Bảo mật cấp cao TLS/SSL
+                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Mã hóa cấp cao TLS/SSL & Bảo mật tối đa
                 </span>
               </div>
             </div>
-          </div>
-          <div className="flex flex-col sm:flex-row items-stretch lg:items-center gap-3 shrink-0">
-            <Button 
-              variant="secondary" 
-              size="sm" 
-              onClick={handlePullFromFirebase} 
-              disabled={isPulling || isPushing}
-              icon={<RefreshCw className={`w-4 h-4 ${isPulling ? 'animate-spin' : ''}`} />}
-              className="font-bold text-xs"
-            >
-              {isPulling ? 'Đang tải về...' : 'Tải dữ liệu từ Firebase'}
-            </Button>
-            <Button 
-              variant="success" 
-              size="sm" 
-              onClick={handlePushToFirebase} 
-              disabled={isPulling || isPushing}
-              icon={<CloudLightning className={`w-4 h-4 ${isPushing ? 'animate-spin' : ''}`} />}
-              className="font-bold text-xs bg-emerald-600 hover:bg-emerald-700 hover:text-white"
-            >
-              {isPushing ? 'Đang đồng bộ...' : 'Đẩy dữ liệu lên Firebase'}
-            </Button>
           </div>
         </div>
       </Card>
