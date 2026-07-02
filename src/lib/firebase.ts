@@ -4,7 +4,18 @@ import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+
+// Detect if we are in the Google AI Studio sandbox/preview environment
+const isAiStudio = typeof window !== 'undefined' && (
+  window.location.hostname.includes('run.app') || 
+  window.location.hostname.includes('localhost') || 
+  window.location.hostname.includes('127.0.0.1')
+);
+
+// Use the custom sandbox database ID only in AI Studio, otherwise default to the standard production (default) database
+const databaseId = isAiStudio ? firebaseConfig.firestoreDatabaseId : undefined;
+
+export const db = getFirestore(app, databaseId);
 export const auth = getAuth();
 
 // Validate connection to Firestore as requested by the Firebase skill guide
